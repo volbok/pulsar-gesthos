@@ -42,11 +42,12 @@ import Prescricao from './Prescricao';
 
 function Passometro() {
 
+  // variáveis de ambiente:
+  // var html_pulsar_atendimentos = process.env.PULSAR_ATENDIMENTOS;
+
   // context.
   const {
     html,
-    unidade,
-    unidades,
     setusuario,
 
     settoast,
@@ -72,10 +73,9 @@ function Passometro() {
     cardculturas, setcardculturas,
     cardatb, setcardatb,
     cardinterconsultas, setcardinterconsultas,
-    
+
     card, setcard,
 
-    setpacientes, pacientes,
     setpaciente,
     atendimentos, setatendimentos,
     setatendimento, atendimento,
@@ -114,30 +114,6 @@ function Passometro() {
   }
   window.addEventListener('load', refreshApp);
 
-  // carregar lista de pacientes.
-  const loadPacientes = () => {
-    axios.get(html + 'list_pacientes').then((response) => {
-      setpacientes(response.data.rows);
-      loadAtendimentos();
-      console.log('LISTA DE PACIENTES CARREGADA.');
-    })
-      .catch(function (error) {
-        if (error.response == undefined) {
-          toast(settoast, 'ERRO DE CONEXÃO, REINICIANDO APLICAÇÃO.', 'black', 3000);
-          setTimeout(() => {
-            setpagina(0);
-            history.push('/');
-          }, 3000);
-        } else {
-          toast(settoast, error.response.data.message + ' REINICIANDO APLICAÇÃO.', 'black', 3000);
-          setTimeout(() => {
-            setpagina(0);
-            history.push('/');
-          }, 3000);
-        }
-      });
-  }
-
   // carregar lista de atendimentos ativos para a unidade selecionada.
   const [arrayatendimentos, setarrayatendimentos] = useState([]);
   const loadAtendimentos = () => {
@@ -149,20 +125,25 @@ function Passometro() {
     axios.defaults.headers.common["Authorization"] = token;
     */
 
-    axios.get(html + 'list_atendimentos/' + unidade).then((response) => {
-      setatendimentos(response.data.rows);
-      setarrayatendimentos(response.data.rows);
-      loadAllInterconsultas();
-      console.log('LISTA DE ATENDIMENTOS CARREGADA: ' + response.data.rows.length);
+    axios.get('https://pulsar-gesthos-api.up.railway.app/pulsar_atendimentos').then((response) => {
+      var x = [0, 1];
+      x = response.data;
+      // console.log([x]);
+      var y = [x];
+      console.log(y.map(item => item.pacientes.map(item => item.internacao)).pop());
+      setatendimentos(y.map(item => item.pacientes.map(item => item.internacao)).pop());
+      setarrayatendimentos(y.map(item => item.pacientes.map(item => item.internacao)).pop());
     })
       .catch(function (error) {
         if (error.response == undefined) {
+          console.log(error);
           toast(settoast, 'ERRO DE CONEXÃO, REINICIANDO APLICAÇÃO.', 'black', 3000);
           setTimeout(() => {
             setpagina(0);
             history.push('/');
           }, 3000);
         } else {
+          console.log(error);
           toast(settoast, error.response.data.message + ' REINICIANDO APLICAÇÃO.', 'black', 3000);
           setTimeout(() => {
             setpagina(0);
@@ -183,10 +164,10 @@ function Passometro() {
   var timeout = null;
   useEffect(() => {
     if (pagina == 1) {
-      setpaciente([]);
+      setpaciente(null);
       setatendimento(null);
-      loadPacientes();
-
+      loadAtendimentos();
+      loadAllInterconsultas();
       setcarddiasinternacao(settings.map(item => item.card_diasinternacao).pop());
       setcardalergias(settings.map(item => item.card_alergias).pop());
       setcardanamnese(settings.map(item => item.card_anamnese).pop());
@@ -207,7 +188,7 @@ function Passometro() {
       // setcardexames(settings.map(item => item.card_exames).pop());
     }
     // eslint-disable-next-line
-  }, [pagina]);
+  }, [pagina, settings]);
 
   // botão de configurações / settings.
   function BtnOptions() {
@@ -359,7 +340,7 @@ function Passometro() {
         }, 100);
       } else {
         setfilterpaciente(document.getElementById("inputPaciente").value.toUpperCase());
-        setarrayatendimentos(atendimentos.filter(item => item.nome_paciente.includes(searchpaciente)));
+        setarrayatendimentos(atendimentos.filter(item => item.paciente.includes(searchpaciente) || item.leito.includes(searchpaciente)));
         document.getElementById("inputPaciente").value = searchpaciente;
         setTimeout(() => {
           document.getElementById("inputPaciente").focus();
@@ -396,7 +377,7 @@ function Passometro() {
         alignSelf: 'center',
       }}>
         <div className="text3">
-          {window.innerWidth < 769 ? unidades.filter(item => item.id_unidade == unidade).map(item => item.nome_unidade) : 'LISTA DE PACIENTES - ' + unidades.filter(item => item.id_unidade == unidade).map(item => item.nome_unidade)}
+          {'LISTA DE PACIENTES'}
         </div>
         <div
           className="scroll"
@@ -408,7 +389,7 @@ function Passometro() {
             width: window.innerWidth < 426 ? 'calc(95vw - 15px)' : '100%',
           }}>
           {arrayatendimentos.sort((a, b) => a.leito > b.leito ? 1 : -1).map(item => (
-            <div key={'pacientes' + item.id_atendimento}>
+            <div key={'pacientes' + item.atendimento}>
               <div
                 className="row" style={{ padding: 0, flex: 4 }}
               >
@@ -418,10 +399,17 @@ function Passometro() {
                     borderTopRightRadius: 0,
                     borderBottomRightRadius: 0,
                   }}>
-                  {item.leito}
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div>
+                      {item.unidadeinternacao}
+                    </div>
+                    <div>
+                      {item.leito}
+                    </div>
+                  </div>
                 </div>
                 <div
-                  id={'atendimento ' + item.id_atendimento}
+                  id={'atendimento ' + item.atendimento}
                   className='button'
                   style={{
                     position: 'relative',
@@ -431,37 +419,37 @@ function Passometro() {
                   }}
                   onClick={() => {
                     setviewlista(0);
-                    setatendimento(item.id_atendimento);
-                    setpaciente(item.id_paciente);
-                    getAllData(item.id_paciente, item.id_atendimento);
+                    setatendimento(parseInt(item.atendimento));
+                    setpaciente(parseInt(item.prontuario));
+                    getAllData(item.prontuario, item.atendimento);
                     if (pagina == 1) {
                       setTimeout(() => {
                         var botoes = document.getElementById("scroll atendimentos").getElementsByClassName("button-red");
                         for (var i = 0; i < botoes.length; i++) {
                           botoes.item(i).className = "button";
                         }
-                        document.getElementById("atendimento " + item.id_atendimento).className = "button-red";
+                        document.getElementById("atendimento " + item.atendimento).className = "button-red";
                       }, 100);
                     }
                   }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
                     {window.innerWidth < 768 ?
-                      pacientes.filter(valor => valor.id_paciente == item.id_paciente).map(valor => valor.nome_paciente.substring(0, 20) + '...')
+                      item.paciente.substring(0, 20) + '...'
                       :
-                      pacientes.filter(valor => valor.id_paciente == item.id_paciente).map(valor => valor.nome_paciente)
+                      item.paciente
                     }
                     <div>
-                      {moment().diff(moment(pacientes.filter(valor => valor.id_paciente == item.id_paciente).map(item => item.dn_paciente)), 'years') + ' ANOS'}
+                      {moment().diff(moment(item.nascimento, 'DD/MM/YYYY'), 'years') + ' ANOS'}
                     </div>
                   </div>
                   <div
-                    id={'btn_interconsultas' + item.id_atendimento}
+                    id={'btn_interconsultas' + item.atendimento}
                     className='button-yellow'
-                    onMouseOver={() => document.getElementById('list_interconsultas ' + item.id_atendimento).style.display = 'flex'}
-                    onMouseLeave={() => document.getElementById('list_interconsultas ' + item.id_atendimento).style.display = 'none'}
+                    onMouseOver={() => document.getElementById('list_interconsultas ' + item.atendimento).style.display = 'flex'}
+                    onMouseLeave={() => document.getElementById('list_interconsultas ' + item.atendimento).style.display = 'none'}
                     style={{
-                      display: window.innerWidth > 425 && allinterconsultas.filter(valor => valor.id_atendimento == item.id_atendimento && valor.status != 'ENCERRADA').length > 0 ? 'flex' : 'none',
+                      display: window.innerWidth > 425 && allinterconsultas.filter(valor => valor.id_atendimento == item.atendimento && valor.status != 'ENCERRADA').length > 0 ? 'flex' : 'none',
                       position: 'absolute', top: -15, right: -15,
                       zIndex: 10,
                       borderRadius: 50,
@@ -479,7 +467,7 @@ function Passometro() {
                     ></img>
                   </div>
                   <div
-                    id={'list_interconsultas ' + item.id_atendimento}
+                    id={'list_interconsultas ' + item.atendimento}
                     className='button'
                     style={{
                       display: 'none',
@@ -490,7 +478,7 @@ function Passometro() {
                       backgroundColor: 'rgb(97, 99, 110, 1)',
                       padding: 20,
                     }}>
-                    {allinterconsultas.filter(valor => valor.id_atendimento == item.id_atendimento && valor.status != 'ENCERRADA').map(item => (
+                    {allinterconsultas.filter(valor => valor.id_atendimento == item.atendimento && valor.status != 'ENCERRADA').map(item => (
                       <div key={'interconsulta ' + item.especialidade}>{item.especialidade}</div>
                     ))}
                   </div>
@@ -539,16 +527,16 @@ function Passometro() {
             opacity: 1, backgroundColor: '#ec7063',
             alignSelf: 'center',
           }}
-          onClick={card == '' ? () => setviewlista(1) : () => setcard(0)}>
+          onClick={card == '' ? () => setviewlista(1) : () => setcard('')}>
           <img
             alt=""
             src={back}
             style={{ width: 30, height: 30 }}
           ></img>
         </div>
-        {arrayatendimentos.filter(item => item.id_atendimento == atendimento).map(item => (
+        {arrayatendimentos.filter(item => item.atendimento == atendimento).map(item => (
           <div className="row"
-            key={'paciente selecionado ' + item.id_atendimento}
+            key={'paciente selecionado ' + item.atendimento}
             style={{
               margin: 0, padding: 0, flex: 1, justifyContent: 'space-around',
               width: '100%', backgroundColor: 'transparent',
@@ -567,9 +555,9 @@ function Passometro() {
               }}>
               <div style={{ width: '100%' }}>
                 {window.innerWidth < 768 ?
-                  pacientes.filter(valor => valor.id_paciente == item.id_paciente).map(valor => valor.nome_paciente.substring(0, 20) + '...')
+                  item.nome.substring(0, 20) + '...'
                   :
-                  pacientes.filter(valor => valor.id_paciente == item.id_paciente).map(valor => valor.nome_paciente)
+                  item.nome
                 }
               </div>
             </div>
@@ -786,6 +774,7 @@ function Passometro() {
         </textarea>
       </div>
     )
+    // eslint-disable-next-line  
   }, [clipboard, viewclipboard]);
 
   // estado para alternância entre lista de pacientes e conteúdo do passômetro para versão mobile.
@@ -824,13 +813,7 @@ function Passometro() {
           width: window.innerWidth > 425 && document.getElementById("conteúdo vazio") != null ? Math.ceil((document.getElementById("conteúdo vazio").offsetWidth / 4) - 43) :
             window.innerWidth < 426 && document.getElementById("conteúdo vazio") != null ? Math.ceil((document.getElementById("conteúdo cheio").offsetWidth / 2) - 48) : '',
         }}
-        onClick={() => {
-          if (card == opcao) {
-            setcard('');
-          } else {
-            setcard(opcao);
-          }
-        }}
+        onClick={card == opcao ? () => setcard('') : () => setcard(opcao)}
       >
         <div className='text3'>{titulo}</div>
         <div style={{
@@ -940,7 +923,6 @@ function Passometro() {
             >
               {'PACIENTE FORA DA VM'}
             </div>
-
           </div>
           <div id='RESUMO ANTIBIÓTICOS'
             style={{
@@ -1128,7 +1110,7 @@ function Passometro() {
         }}>
         <ViewPaciente></ViewPaciente>
         <div style={{ pointerEvents: 'none' }}>
-          {cartao(null, 'DIAS DE INTERNAÇÃO: ' + atendimentos.filter(item => item.id_atendimento == atendimento).map(item => moment().diff(item.data_inicio, 'days')), null, carddiasinternacao, 0)}
+          {cartao(null, 'DIAS DE INTERNAÇÃO: ' + atendimentos.filter(item => item.atendimento == atendimento).map(item => moment().diff(moment(item.data, 'DD/MM/YYYY'), 'days')), null, carddiasinternacao, 0)}
         </div>
         {cartao(alergias, 'ALERGIAS', 'card-alergias', cardalergias, busyalergias)}
         {cartao(null, 'ANAMNESE', 'card-anamnese', cardanamnese)}
@@ -1198,7 +1180,6 @@ function Passometro() {
         >
           <div className="text3">PRESCRIÇÃO</div>
         </div>
-
         <Alergias></Alergias>
         <Anamnese></Anamnese>
         <Boneco></Boneco>
@@ -1216,7 +1197,6 @@ function Passometro() {
         <Interconsultas></Interconsultas>
         <Exames></Exames>
         <Prescricao></Prescricao>
-
       </div>
       <div id="conteúdo vazio"
         className='scroll'
@@ -1233,7 +1213,7 @@ function Passometro() {
       </div>
       <BtnOptions></BtnOptions>
       <ViewClipboard></ViewClipboard>
-    </div >
+    </div>
   );
 }
 
