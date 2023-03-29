@@ -118,7 +118,7 @@ const criandoJsonAssistencial = () => {
           "atendimento": "111",
           "grupo": "01 - GRUPO DADOS VITAIS E CONTROLES",
           "item": "0101 - PAS",
-          "valor": "AÇÃO, ARQUÉTIPO",
+          "valor": "AÇÃO",
         }
       }
     ]
@@ -128,64 +128,6 @@ const criandoJsonAssistencial = () => {
     console.log('ENVIADO! ' + JSON.stringify(obj));
   }).catch((err) => console.log(err));
 }
-
-/*
-{
-        "documento": {
-          "data": "09/03/2023",
-          "hora": "00:20:06",
-          "prontuario": "33671",
-          "atendimento": "1494404",
-          "grupo": "05 - ANAMNESE E EVOLUCOES",
-          "item": "0503 - ANAMNESE MEDICACOES DE USO DOMICILIAR",
-          "valor": "TESTANDO CARACTETRES: AÃ‡ÃƒO, ÃšLCERA, ARQUÃ‰TIPO, ÃNDIO. SUCÃ‡ÃƒO.",
-        }
-      },
-      {
-        "documento": {
-          "data": "01/03/2023",
-          "hora": "00:03:06",
-          "prontuario": "111",
-          "atendimento": "111",
-          "grupo": "01 - GRUPO DADOS VITAIS E CONTROLES",
-          "item": "0101 - PAS",
-          "valor": "120",
-        }
-      },
-      {
-        "documento": {
-          "data": "01/03/2023",
-          "hora": "00:03:06",
-          "prontuario": "111",
-          "atendimento": "111",
-          "grupo": "01 - GRUPO DADOS VITAIS E CONTROLES",
-          "item": "0102 - PAD",
-          "valor": "80",
-        }
-      },
-      {
-        "documento": {
-          "data": "01/03/2023",
-          "hora": "00:03:06",
-          "prontuario": "111",
-          "atendimento": "111",
-          "grupo": "01 - GRUPO DADOS VITAIS E CONTROLES",
-          "item": "0103 - FC",
-          "valor": "74",
-        }
-      },
-      {
-        "documento": {
-          "data": "01/03/2023",
-          "hora": "00:03:06",
-          "prontuario": "111",
-          "atendimento": "111",
-          "grupo": "01 - GRUPO DADOS VITAIS E CONTROLES",
-          "item": "0104 - FR",
-          "valor": "18",
-        }
-      },
-*/
 
 setInterval(() => {
   // criandoJsonAtendimento();
