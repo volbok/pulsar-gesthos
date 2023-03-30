@@ -99,9 +99,12 @@ const criandoJsonAtendimento = () => {
   }).catch((err) => console.log(err));
 }
 
-const criandoJsonAssistencial = () => {
+const criandoJsonAssistencial = (endpoint) => {
   console.log('ENVIADO ARRAY COM JSONS');
   var obj =
+  {"atributo": "ação"}
+
+  var obj2 =
   {
     "credenciais":
     {
@@ -124,12 +127,14 @@ const criandoJsonAssistencial = () => {
     ]
   }
 
-  axios.post(html + 'gesthos_assistencial', obj).then(() => {
+  axios.post(html + endpoint, obj).then(() => {
     console.log('ENVIADO! ' + JSON.stringify(obj));
   }).catch((err) => console.log(err));
 }
 
+criandoJsonAssistencial('pegatxt');
+
 setInterval(() => {
   // criandoJsonAtendimento();
-  criandoJsonAssistencial();
-}, 5000);
+  // criandoJsonAssistencial();
+}, 50000);
